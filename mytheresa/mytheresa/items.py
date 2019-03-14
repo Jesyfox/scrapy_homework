@@ -9,6 +9,9 @@ import scrapy
 
 
 class MytheresaItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+    article = scrapy.Field()  # <span class="h1">
+    title = scrapy.Field()  # <a class="text-000000"
+    image = scrapy.Field()  # <img id="image-(*)" class="gallery-image"
+    price = scrapy.Field()  # <span class="price"
+    size = scrapy.Field()  # <a href="javascript:void(0);" class="size-trigger"> ???
+    description = scrapy.Field()  # <p class="pa1 product-description">
