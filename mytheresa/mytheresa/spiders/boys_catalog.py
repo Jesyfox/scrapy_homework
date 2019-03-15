@@ -10,15 +10,47 @@ class CatalogSpider(scrapy.Spider):
         'https://www.mytheresa.com/en-us/boys.html?block=boys'
     ]
 
+    def get_article(self, response):
+        try:
+            return response.xpath('//span[@class="h1"]/text()').extract_first().split('\xa0')[-1]
+        except IndexError:
+            return None
+
+    def get_title(self, response):
+        return response.xpath('//a[@class="text-000000"]/text()').extract_first()
+
+    def get_image(self, response):
+        img_list = response.xpath('//img[@class="gallery-image"]/@src').extract()
+        return [img.lstrip('//') for img in img_list]
+
+    def get_price(self, response):
+        return response.xpath(
+            '//div[@class="price-box"]/span[@class="regular-price"]/span[@class="price"]/text()').extract_first()
+
+    def get_size(self, response):
+        res = []
+        params_list = response.xpath(
+            '//div[@class="product-options"]/dl/dd/div/div[@class="size-chooser"]/ul[@class="sizes"]/li/a')
+        if params_list:
+            for item in params_list:
+                if item.xpath('span/text()'):
+                    size = item.xpath('span/text()').extract_first()
+                else:
+                    size = item.xpath('text()').extract_first()
+                res.append(size)
+        return res
+
+    def get_description(self, response):
+        return response.xpath('//p[@class="pa1 product-description"]/text()').extract_first()
+
     def parse_item(self, response):
         item = MytheresaItem()
-        item['article'] = response.xpath('//span[@class="h1"]/text()').extract_first().split('\xa0')[-1]
-        item['title'] = response.xpath('//a[@class="text-000000"]/text()').extract_first()
-        item['image'] = response.xpath('//img[@class="gallery-image"]/@src').extract()
-        item['price'] = response.xpath(
-            '//div[@class="price-box"]/span[@class="regular-price"]/span[@class="price"]/text()').extract_first()
-        item['size'] = None  # ???
-        item['description'] = response.xpath('//p[@class="pa1 product-description"]/text()').extract_first()
+        item['article'] = self.get_article(response)
+        item['title'] = self.get_title(response)
+        item['image'] = self.get_image(response)
+        item['price'] = self.get_price(response)
+        item['size'] =self.get_size(response)
+        item['description'] = self.get_description(response)
         return item
 
     def parse(self, response):
