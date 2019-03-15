@@ -7,8 +7,10 @@ from ..items import MytheresaItem
 class CatalogSpider(scrapy.Spider):
     name = "boys_catalog"
     start_urls = [
-        'https://www.mytheresa.com/en-us/boys.html?block=boys'
-    ]
+            'https://www.mytheresa.com/en-us/boys.html?p=1',
+            'https://www.mytheresa.com/en-us/boys.html?p=2',
+            'https://www.mytheresa.com/en-us/boys.html?p=3'
+        ]
 
     def get_article(self, response):
         try:
@@ -49,11 +51,13 @@ class CatalogSpider(scrapy.Spider):
         item['title'] = self.get_title(response)
         item['image'] = self.get_image(response)
         item['price'] = self.get_price(response)
-        item['size'] =self.get_size(response)
+        item['size'] = self.get_size(response)
         item['description'] = self.get_description(response)
         return item
 
     def parse(self, response):
-        p_urls = response.xpath('//h2[@class="product-name"]/a/@href').extract()[:3]
+        p_urls = response.xpath('//h2[@class="product-name"]/a/@href').extract()[:5]
         for url in p_urls:
             yield scrapy.Request(url=url, callback=self.parse_item)
+
+
