@@ -2,19 +2,24 @@
 
 import scrapy
 from ..items import MytheresaItem
+from scrapy_redis.spiders import RedisSpider
 
 
-class CatalogSpider(scrapy.Spider):
+class CatalogSpider(RedisSpider):
     name = "boys_catalog"
-    start_urls = [
-            'https://www.mytheresa.com/en-us/boys.html?p=1',
-            'https://www.mytheresa.com/en-us/boys.html?p=2',
-            'https://www.mytheresa.com/en-us/boys.html?p=3'
-        ]
+    # start_urls = [
+    #         'https://www.mytheresa.com/en-us/boys.html',
+    #     ]
+
+    def get_page_count(self, response):
+        return int(response.xpath('//li[@class="last"]/a/@href').extract_first().split('?p=')[-1])
+
+    def make_requests_from_url(self, url):
+        return scrapy.Request(url=url)
 
     def get_article(self, response):
         try:
-            return response.xpath('//span[@class="h1"]/text()').extract_first().split('\xa0')[-1]
+            return response.xpath('//span[@class="h1"]/text()').extract_first()
         except IndexError:
             return None
 
@@ -55,9 +60,12 @@ class CatalogSpider(scrapy.Spider):
         item['description'] = self.get_description(response)
         return item
 
-    def parse(self, response):
-        p_urls = response.xpath('//h2[@class="product-name"]/a/@href').extract()[:5]
+    def parse_page(self, response):
+        p_urls = response.xpath('//h2[@class="product-name"]/a/@href').extract()[:1]  # !!!
         for url in p_urls:
             yield scrapy.Request(url=url, callback=self.parse_item)
 
-
+    def parse(self, response):
+        for page in range(1, self.get_page_count(response) + 1):
+            page_url = 'https://www.mytheresa.com/en-us/boys.html?p={page}'.format(page=page)
+            yield scrapy.Request(url=page_url, callback=self.parse_page)

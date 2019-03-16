@@ -15,6 +15,17 @@ SPIDER_MODULES = ['mytheresa.spiders']
 NEWSPIDER_MODULE = 'mytheresa.spiders'
 
 
+# Enables scheduling storing requests queue in redis.
+SCHEDULER = "scrapy_redis.scheduler.Scheduler"
+
+# Ensure all spiders share same duplicates filter through redis.
+DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
+
+# Store scraped item in redis for post-processing.
+ITEM_PIPELINES = {
+    'scrapy_redis.pipelines.RedisPipeline': 300
+}
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'mytheresa (+http://www.yourdomain.com)'
 
